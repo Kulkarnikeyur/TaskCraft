@@ -3,6 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <title>Deadline Tracker</title>
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='logo.png') }}"
+      type="image/png"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- Google Fonts -->
     <link
@@ -48,6 +53,7 @@
             name="name"
             placeholder="Enter name"
             required
+            autofocus
           />
 
           <label for="status">Status</label>
@@ -58,10 +64,10 @@
           </select>
 
           <label for="date">Date</label>
-          <input type="date" id="date" name="date" required />
+          <input type="date" id="date" name="date" required autofocus/>
 
           <label for="time">Time</label>
-          <input type="time" id="time" name="time" required />
+          <input type="time" id="time" name="time" required autofocus/>
 
           <button type="submit">Add Deadline</button>
         </form>
@@ -157,3 +163,4 @@
     </script>
   </body>
 </html>
+
