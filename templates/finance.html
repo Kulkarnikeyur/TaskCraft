@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Bill Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='finance.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Top Right Bar with Theme Toggle (Account circle ignored for now) -->
+    <header class="head">
+      <h4 class="heading">FINANCE TRACKER</h4>
+      <form action="/landing" method="get" class="nav-brand">
+        <button class="home-btn">Home</button>
+      </form>
+      <label class="toggle">
+        <span class="text">Light</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="theme-toggle-checkbox" />
+          <span class="slider"></span>
+        </label>
+        <span class="text">Dark</span>
+      </label>
+    </header>
+
+    <div class="container">
+      <!-- Left Panel -->
+      <section class="side-panel" aria-label="Add New Transaction Panel">
+        <h2>Add New Transaction</h2>
+        <form id="transaction-form" action="/addexpense" method="post">
+          <label for="trans-date">Date</label>
+          <input type="date" id="trans-date" name="trans-date" required />
+
+          <label for="trans-desc">Description</label>
+          <input
+            type="text"
+            id="trans-desc"
+            name="trans-desc"
+            placeholder="Enter description"
+            required
+          />
+
+          <label for="trans-amount">Amount</label>
+          <input
+            type="number"
+            id="trans-amount"
+            name="trans-amount"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            required
+          />
+
+          <button type="submit">Add Transaction</button>
+        </form>
+      </section>
+
+      <!-- Main Content -->
+      <main class="main-content" aria-label="Bills Section">
+        <h1>BILLS</h1>
+
+        <div class="total-expenses" aria-live="polite">
+          Total Expenses
+
+          {% for t in total %}
+            {{t}}
+          {% endfor %}
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>date</th>
+              <th>description</th>
+              <th>amount</th>
+              <th></th>
+            </tr>
+            </thead>
+              <tbody id="bills-table-body">
+                {% for expense in expenses %}
+                <tr>
+                  <td>{{ expense[1] }}</td>
+                  <td>${{ expense[2] }}</td>
+                  <td>{{ expense[3] }}</td>
+                  <td>
+                  <form action="/delexrow" method="post" >
+                    <input type="hidden" name="row_id" value="{{ expense[0] }}" >
+                    <button type="submit" class="delete">delete</button>
+                  </form>
+                </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      // Handle theme toggle
+      const body = document.body;
+      const checkbox = document.getElementById("theme-toggle-checkbox");
+      const slider = document.getElementById("theme-slider");
+
+      // Initialize theme from local storage or default to light
+      function setTheme(dark) {
+        if (dark) {
+          body.classList.add("dark");
+          checkbox.checked = true;
+          slider.style.backgroundColor = getComputedStyle(body)
+            .getPropertyValue("--panel-bg")
+            .trim();
+          localStorage.setItem("theme", "dark");
+        } else {
+          body.classList.remove("dark");
+          checkbox.checked = false;
+          slider.style.backgroundColor = getComputedStyle(body)
+            .getPropertyValue("--panel-bg")
+            .trim();
+          localStorage.setItem("theme", "light");
+        }
+      }
+
+      checkbox.addEventListener("change", () => {
+        setTheme(checkbox.checked);
+      });
+
+      window.addEventListener("load", () => {
+        const savedTheme = localStorage.getItem("theme") || "light";
+        setTheme(savedTheme === "dark");
+      });
+    </script>
+  </body>
+</html>

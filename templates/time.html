@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Focus Timer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Google Fonts for modern styling -->
+    <link
+      href="https://fonts.googleapis.com/css?family=Montserrat:700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='time.css') }}"
+    />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1 class="page-title">FOCUS TIMER</h1>
+      <form action="/landing" method="get" class="nav-brand">
+        <button class="home-btn">Home</button>
+      </form>
+      <div class="theme-toggle-row">
+        <span class="theme-label">light</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="theme-toggle" />
+          <span class="slider"></span>
+        </label>
+        <span class="theme-label">Dark</span>
+      </div>
+      <!-- Right account circle ignored for now -->
+    </header>
+
+    <main>
+      <section class="timer-grid">
+        <!-- ALARM BOX -->
+        <div class="timer-box" id="alarm-box">
+          <h2>ALARM</h2>
+          <div class="alarm-content">
+            <div id="alarm-current-time"></div>
+            <input type="time" id="alarm-time" />
+            <button id="set-alarm-btn" class="action-btn">Set Alarm</button>
+            <div id="alarm-message"></div>
+          </div>
+        </div>
+
+        <!-- POMODORO BOX -->
+        <div class="timer-box" id="pomodoro-box">
+          <h2>POMODORO</h2>
+          <div class="pomodoro-content">
+            <div id="pomodoro-timer">25:00</div>
+            <div class="pomo-controls">
+              <button id="pomo-start" class="action-btn">Start</button>
+              <button id="pomo-pause" class="action-btn">Pause</button>
+              <button id="pomo-reset" class="action-btn">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STOPWATCH BOX -->
+        <div class="timer-box" id="stopwatch-box">
+          <h2>STOP WATCH</h2>
+          <div class="stopwatch-content">
+            <div id="stopwatch-timer">00:00:00</div>
+            <div class="sw-controls">
+              <button id="sw-start" class="action-btn">Start</button>
+              <button id="sw-stop" class="action-btn">Stop</button>
+              <button id="sw-reset" class="action-btn">Reset</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // THEMING
+      const themeToggle = document.getElementById("theme-toggle");
+      function applyTheme(dark) {
+        if (dark) {
+          document.body.classList.add("dark");
+          themeToggle.checked = true;
+          localStorage.setItem("theme", "dark");
+        } else {
+          document.body.classList.remove("dark");
+          themeToggle.checked = false;
+          localStorage.setItem("theme", "light");
+        }
+      }
+      themeToggle.onchange = () => applyTheme(themeToggle.checked);
+      window.onload = function () {
+        const saved = localStorage.getItem("theme");
+        applyTheme(saved === "dark");
+      };
+
+      // ALARM CLOCK
+      const alarmTimeInput = document.getElementById("alarm-time");
+      const alarmMsg = document.getElementById("alarm-message");
+      const setAlarmBtn = document.getElementById("set-alarm-btn");
+      let alarmTimeout = null;
+      function showCurrentTime() {
+        const now = new Date();
+        let h = now.getHours(),
+          m = now.getMinutes(),
+          s = now.getSeconds();
+        function pad(x) {
+          return x < 10 ? "0" + x : x;
+        }
+        document.getElementById(
+          "alarm-current-time"
+        ).textContent = `Current Time: ${pad(h)}:${pad(m)}:${pad(s)}`;
+      }
+      setInterval(showCurrentTime, 1000);
+      setAlarmBtn.onclick = function () {
+        clearTimeout(alarmTimeout);
+        const alarmTime = alarmTimeInput.value;
+        if (!alarmTime) {
+          alarmMsg.textContent = "Set a valid time!";
+          return;
+        }
+        const now = new Date();
+        const [aH, aM] = alarmTime.split(":").map(Number);
+        const alarm = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          aH,
+          aM,
+          0
+        );
+        let timeToAlarm = alarm - now;
+        if (timeToAlarm < 0) timeToAlarm += 24 * 60 * 60 * 1000; // Next day
+        alarmMsg.textContent = `Alarm set for ${alarmTime}`;
+        alarmTimeout = setTimeout(() => {
+          window.alert("⏰ Wake up! Time's up!");
+          alarmMsg.textContent = "";
+        }, timeToAlarm);
+      };
+
+      // POMODORO TIMER
+      let pomoMin = 25,
+        pomoSec = 0,
+        pomoInterval;
+      const pomoDisplay = document.getElementById("pomodoro-timer");
+      function updatePomoDisplay() {
+        pomoDisplay.textContent = `${pomoMin < 10 ? "0" + pomoMin : pomoMin}:${
+          pomoSec < 10 ? "0" + pomoSec : pomoSec
+        }`;
+      }
+      function pomoTick() {
+        if (pomoSec === 0 && pomoMin === 0) {
+          clearInterval(pomoInterval);
+          window.alert("Pomodoro done! Take a short break.");
+        } else if (pomoSec === 0) {
+          pomoMin--;
+          pomoSec = 59;
+        } else pomoSec--;
+        updatePomoDisplay();
+      }
+      document.getElementById("pomo-start").onclick = function () {
+        clearInterval(pomoInterval); // avoid duplicates
+        pomoInterval = setInterval(pomoTick, 1000);
+      };
+      document.getElementById("pomo-pause").onclick = function () {
+        clearInterval(pomoInterval);
+      };
+      document.getElementById("pomo-reset").onclick = function () {
+        clearInterval(pomoInterval);
+        pomoMin = 25;
+        pomoSec = 0;
+        updatePomoDisplay();
+      };
+      updatePomoDisplay();
+
+      // STOPWATCH
+      let swInterval,
+        swHr = 0,
+        swMin = 0,
+        swSec = 0,
+        running = false;
+      const swDisplay = document.getElementById("stopwatch-timer");
+      function updateSW() {
+        function pad(x) {
+          return x < 10 ? "0" + x : x;
+        }
+        swDisplay.textContent = `${pad(swHr)}:${pad(swMin)}:${pad(swSec)}`;
+      }
+      function swTick() {
+        swSec++;
+        if (swSec === 60) {
+          swSec = 0;
+          swMin++;
+        }
+        if (swMin === 60) {
+          swMin = 0;
+          swHr++;
+        }
+        updateSW();
+      }
+      document.getElementById("sw-start").onclick = function () {
+        if (!running) {
+          swInterval = setInterval(swTick, 1000);
+          running = true;
+        }
+      };
+      document.getElementById("sw-stop").onclick = function () {
+        clearInterval(swInterval);
+        running = false;
+      };
+      document.getElementById("sw-reset").onclick = function () {
+        clearInterval(swInterval);
+        swHr = swMin = swSec = 0;
+        updateSW();
+        running = false;
+      };
+      updateSW();
+    </script>
+  </body>
+</html>

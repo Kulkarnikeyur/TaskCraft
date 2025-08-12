@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Deadline Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css?family=Montserrat:700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='deadlines.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Top Header -->
+    <header class="topbar">
+      <h4 class="page-title">DEADLINE TRACKER</h4>
+      <form action="/landing" method="get" class="nav-brand">
+        <button class="home-btn">Home</button>
+      </form>
+      <div class="theme-toggle-row">
+        <span class="theme-label">light</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="theme-toggle" />
+          <span class="slider"></span>
+        </label>
+        <span class="theme-label">dark</span>
+      </div>
+      <!-- Account circle ignored for now -->
+    </header>
+
+    <main class="container">
+      <!-- LEFT: Static Form -->
+      <section class="form-section" aria-label="Add Deadline Form">
+        <h2>Add New Deadline</h2>
+        <form action="/adddeadline" method="post">
+          <label for="name">Name</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            placeholder="Enter name"
+            required
+          />
+
+          <label for="status">Status</label>
+          <select id="status" name="status">
+            <option value="not-started">Not yet started</option>
+            <option value="on-my-way">On my way</option>
+            <option value="completed">Completed</option>
+          </select>
+
+          <label for="date">Date</label>
+          <input type="date" id="date" name="date" required />
+
+          <label for="time">Time</label>
+          <input type="time" id="time" name="time" required />
+
+          <button type="submit">Add Deadline</button>
+        </form>
+      </section>
+
+      <!-- RIGHT: Table with sample data -->
+      <section class="table-section" aria-label="Deadline List">
+        <h2>Upcoming Deadlines</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="deadline-table-body">
+            {% for deadline in deadlines %}
+            <tr>
+              <td>{{ deadline[1] }}</td>
+              <td>${{deadline[2] }}</td>
+              <td>{{ deadline[3] }}</td>
+              <td>{{deadline[4]}}</td>
+              <td>
+                <form action="/deldlrow" method="post">
+                  <input
+                    type="hidden"
+                    name="row_id"
+                    value="{{ deadline[0] }}"
+                  />
+                  <button type="submit" class="delete">delete</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      // Theme toggle logic
+      const body = document.body;
+      const themeToggle = document.getElementById("theme-toggle");
+
+      function applyTheme(isDark) {
+        if (isDark) {
+          body.classList.add("dark");
+          themeToggle.checked = true;
+          localStorage.setItem("theme", "dark");
+        } else {
+          body.classList.remove("dark");
+          themeToggle.checked = false;
+          localStorage.setItem("theme", "light");
+        }
+        updateStatusColors();
+      }
+
+      themeToggle.addEventListener("change", () => {
+        applyTheme(themeToggle.checked);
+      });
+
+      window.addEventListener("load", () => {
+        const savedTheme = localStorage.getItem("theme") || "light";
+        applyTheme(savedTheme === "dark");
+      });
+
+      // Update status cell background colors
+      function updateStatusColors() {
+        const dropdowns = document.querySelectorAll(".status-dropdown");
+        dropdowns.forEach((select) => {
+          const val = select.value;
+          const td = select.parentElement;
+          // Reset classes/colors
+          td.classList.remove("status-not-started", "status-on-my-way");
+          if (val === "not-started") {
+            td.classList.add("status-not-started");
+          } else if (val === "on-my-way") {
+            td.classList.add("status-on-my-way");
+          }
+          // If value is "completed", do nothing since no rows with that shown.
+        });
+      }
+
+      // Add change event listeners on status dropdowns
+      document.querySelectorAll(".status-dropdown").forEach((select) => {
+        select.addEventListener("change", updateStatusColors);
+      });
+
+      // Run once on load
+      updateStatusColors();
+    </script>
+  </body>
+</html>

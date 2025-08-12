@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up - TaskCraft</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='signup.css') }}"
+    />
+  </head>
+  <body>
+    <div class="signup-container">
+      <div class="signup-form">
+        <h1>TaskCraft</h1>
+        <h2>Create Account</h2>
+
+        <form action="/signclick" method="post">
+          <div class="input-group">
+            <label for="userId">User ID</label>
+            <input
+              type="text"
+              id="userId"
+              name="id"
+              maxlength="9"
+              placeholder="Enter 9 characters"
+              required
+            />
+            <span class="char-count" id="userIdCount">0/9</span>
+          </div>
+
+          <div class="input-group">
+            <label for="password">Password</label>
+            <div class="password-container">
+              <input
+                type="password"
+                id="password"
+                maxlength="6"
+                name="pass"
+                placeholder="Enter 6 characters"
+                required
+              />
+              <span class="eye-icon" id="togglePassword">👁️</span>
+            </div>
+            <span class="char-count" id="passwordCount">0/6</span>
+          </div>
+
+          <button type="submit" class="signup-btn">Sign Up</button>
+        </form>
+
+        <p class="login-link">
+          Already have an account? <a href="/login">Login</a>
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // Character counting
+      const userIdInput = document.getElementById("userId");
+      const passwordInput = document.getElementById("password");
+      const userIdCount = document.getElementById("userIdCount");
+      const passwordCount = document.getElementById("passwordCount");
+      const togglePassword = document.getElementById("togglePassword");
+
+      userIdInput.addEventListener("input", function () {
+        userIdCount.textContent = `${this.value.length}/9`;
+      });
+
+      passwordInput.addEventListener("input", function () {
+        passwordCount.textContent = `${this.value.length}/6`;
+      });
+
+      // Toggle password visibility
+      togglePassword.addEventListener("click", function () {
+        const type =
+          passwordInput.getAttribute("type") === "password"
+            ? "text"
+            : "password";
+        passwordInput.setAttribute("type", type);
+        this.textContent = type === "password" ? "👁️" : "🙈";
+      });
+    </script>
+  </body>
+</html>

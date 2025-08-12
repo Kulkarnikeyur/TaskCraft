@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Student Portal</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='login.css') }}"
+    />
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="login-form">
+        <h1>Welcome Back</h1>
+        <h2>Please sign in to continue</h2>
+
+        {% if get_flashed_messages() %} {% for message in
+        get_flashed_messages(with_categories=true) %}
+        <div
+          class="alert alert-{{ 'success' if message[0] == 'success' else 'danger' }}"
+        >
+          {{ message[1] }}
+        </div>
+        {% endfor %} {% endif %}
+
+        <form action="/loginclick" method="POST" id="loginForm">
+          <div class="input-group">
+            <label for="user_id">User ID</label>
+            <input
+              type="text"
+              id="user_id"
+              name="user_id"
+              placeholder="Enter your 9-character User ID"
+              maxlength="9"
+              required
+              oninput="updateCharCount('user_id', 9)"
+            />
+            <span class="char-count" id="user_id_count">0/9 characters</span>
+          </div>
+
+          <div class="input-group">
+            <label for="password">Password</label>
+            <div class="password-container">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your 6-character password"
+                maxlength="6"
+                required
+                oninput="updateCharCount('password', 6)"
+              />
+              <span class="eye-icon" onclick="togglePassword()">👁️</span>
+            </div>
+            <span class="char-count" id="password_count">0/6 characters</span>
+          </div>
+
+          <button type="submit" class="login-btn">Sign In</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      function updateCharCount(fieldId, maxLength) {
+        const field = document.getElementById(fieldId);
+        const counter = document.getElementById(fieldId + "_count");
+        const currentLength = field.value.length;
+
+        counter.textContent = `${currentLength}/${maxLength} characters`;
+
+        if (currentLength === maxLength) {
+          counter.style.color = "#4a9eff";
+          counter.style.fontWeight = "bold";
+        } else {
+          counter.style.color = "#888888";
+          counter.style.fontWeight = "normal";
+        }
+      }
+
+      function togglePassword() {
+        const passwordField = document.getElementById("password");
+        const eyeIcon = document.querySelector(".eye-icon");
+
+        if (passwordField.type === "password") {
+          passwordField.type = "text";
+          eyeIcon.textContent = "🙈";
+        } else {
+          passwordField.type = "password";
+          eyeIcon.textContent = "👁️";
+        }
+      }
+
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", function (e) {
+          const userId = document.getElementById("user_id").value.trim();
+          const password = document.getElementById("password").value.trim();
+
+          if (userId.length !== 9) {
+            e.preventDefault();
+            alert("User ID must be exactly 9 characters long!");
+            return;
+          }
+
+          if (password.length !== 6) {
+            e.preventDefault();
+            alert("Password must be exactly 6 characters long!");
+            return;
+          }
+        });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TaskCraft - Your Ultimate Productivity Companion</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='landing.css') }}"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <header>
+      <nav class="containers">
+        <img
+          src="{{ url_for('static', filename='logo.png') }}"
+          width="60"
+          height="60"
+          margin-right="1000px"
+        />
+      </nav>
+      <div class="danger">
+        <form action="/logout2" method="get" class="logout">
+          <button type="submit" class="btn btn-danger">logout</button>
+        </form>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <h1>Welcome to TaskCraft</h1>
+          <p>
+            Your all-in-one productivity suite designed to streamline your daily
+            tasks and boost your efficiency
+          </p>
+          <!-- <a href="#features" class="cta-button">Explore Features</a> -->
+        </div>
+      </section>
+
+      <section class="features" id="features">
+        <div class="container">
+          <h2>Powerful Features for Better Productivity</h2>
+
+          <div class="features-grid">
+            <form action="/bill" method="get">
+              <button class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>Bill Tracker</h3>
+                <p>
+                  Keep track of your finances with our comprehensive expense
+                  tracker. Monitor bills, categorize spending, and stay on top
+                  of your budget.
+                </p>
+              </button>
+            </form>
+
+            <form action="/password" method="get">
+              <button class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>Password Generator</h3>
+                <p>
+                  Generate secure, random passwords to protect your accounts.
+                  Customize length and complexity for maximum security across
+                  all platforms.
+                </p>
+              </button>
+            </form>
+
+            <form action="/time" method="get">
+              <button class="feature-card">
+                <div class="feature-icon">⏰</div>
+                <h3>Focus Timer</h3>
+                <p>
+                  Stay focused with Pomodoro timers, set important reminders,
+                  and never miss crucial moments with customizable alarms and
+                  notifications.
+                </p>
+              </button>
+            </form>
+
+            <form action="/deadline" method="get">
+              <button class="feature-card">
+                <div class="feature-icon">📅</div>
+                <h3>Deadline Tracker</h3>
+                <p>
+                  Visualize upcoming deadlines with our smart tracker. Get
+                  timely reminders and prioritize tasks based on urgency and
+                  importance.
+                </p>
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>
+          &copy; 2025 TaskCraft. Built for productivity enthusiasts and students
+          who want to craft their perfect workflow.
+        </p>
+        <form action="/logout" method="get" class="logout">
+          <button type="submit" class="btn btn-danger">Delete Account</button>
+        </form>
+      </div>
+    </footer>
+  </body>
+</html>
