@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sign Up - TaskCraft</title>
     <link
+      rel="icon"
+      href="{{ url_for('static', filename='logo.png') }}"
+      type="image/png"
+    />
+    <link
       rel="stylesheet"
       href="{{ url_for('static', filename='signup.css') }}"
     />
@@ -25,6 +30,7 @@
               maxlength="9"
               placeholder="Enter 9 characters"
               required
+              autofocus
             />
             <span class="char-count" id="userIdCount">0/9</span>
           </div>
@@ -39,6 +45,7 @@
                 name="pass"
                 placeholder="Enter 6 characters"
                 required
+                autofocus
               />
               <span class="eye-icon" id="togglePassword">👁️</span>
             </div>
@@ -82,3 +89,4 @@
     </script>
   </body>
 </html>
+
