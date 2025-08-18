@@ -34,6 +34,16 @@ def click1():
     print(request.form["pass"])
     mydb = get_db_connection()
     cursor = mydb.cursor()
+
+    cursor.execute("SELECT userid FROM landing WHERE userid = %s", (request.form["id"],))
+    existing_user = cursor.fetchone()
+
+    if existing_user:
+        flash("User ID already exists. Please choose another one.")
+        cursor.close()
+        mydb.close()
+        return redirect("/signup")
+    
     sql="insert into landing (userid,password) values(%s,%s)"
     values=(request.form["id"],request.form["pass"])
     cursor.execute(sql,values)
@@ -101,7 +111,10 @@ def logout():
     return redirect("/")
 @app.route("/logout2")
 def log():
-    session.pop("user_num")
+    try:
+        session.pop("user_num")
+    except KeyError:
+        pass
     return redirect("/")
 @app.route("/landing")
 def land():
@@ -256,5 +269,4 @@ def deldl():
     return redirect("/deadline")
 
 if __name__=="__main__":
-
     app.run(debug=True)
