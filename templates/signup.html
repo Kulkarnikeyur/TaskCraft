@@ -19,7 +19,14 @@
       <div class="signup-form">
         <h1>TaskCraft</h1>
         <h2>Create Account</h2>
-
+        {% if get_flashed_messages() %} {% for message in
+        get_flashed_messages(with_categories=true) %}
+        <div
+          class="alert alert-{{ 'success' if message[0] == 'success' else 'danger' }}"
+        >
+          {{ message[1] }}
+        </div>
+        {% endfor %} {% endif %}
         <form action="/signclick" method="post">
           <div class="input-group">
             <label for="userId">User ID</label>
@@ -45,7 +52,6 @@
                 name="pass"
                 placeholder="Enter 6 characters"
                 required
-                autofocus
               />
               <span class="eye-icon" id="togglePassword">👁️</span>
             </div>
@@ -89,4 +95,3 @@
     </script>
   </body>
 </html>
-
