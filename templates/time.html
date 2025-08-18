@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <title>Focus Timer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       rel="icon"
       href="{{ url_for('static', filename='logo.png') }}"
       type="image/png"
     />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Google Fonts for modern styling -->
     <link
       href="https://fonts.googleapis.com/css?family=Montserrat:700&display=swap"
@@ -24,6 +24,11 @@
     />
   </head>
   <body>
+    <audio
+      id="alarmSound"
+      src="{{ url_for('static', filename='alarm.mp3') }}"
+    ></audio>
+
     <header class="topbar">
       <h1 class="page-title">FOCUS TIMER</h1>
       <form action="/landing" method="get" class="nav-brand">
@@ -105,7 +110,9 @@
       const alarmTimeInput = document.getElementById("alarm-time");
       const alarmMsg = document.getElementById("alarm-message");
       const setAlarmBtn = document.getElementById("set-alarm-btn");
+      const alarmSound = document.getElementById("alarmSound"); // <audio>
       let alarmTimeout = null;
+
       function showCurrentTime() {
         const now = new Date();
         let h = now.getHours(),
@@ -119,6 +126,7 @@
         ).textContent = `Current Time: ${pad(h)}:${pad(m)}:${pad(s)}`;
       }
       setInterval(showCurrentTime, 1000);
+
       setAlarmBtn.onclick = function () {
         clearTimeout(alarmTimeout);
         const alarmTime = alarmTimeInput.value;
@@ -126,9 +134,11 @@
           alarmMsg.textContent = "Set a valid time!";
           return;
         }
+
         const now = new Date();
         const [aH, aM] = alarmTime.split(":").map(Number);
-        const alarm = new Date(
+
+        const alarmDate = new Date(
           now.getFullYear(),
           now.getMonth(),
           now.getDate(),
@@ -136,11 +146,34 @@
           aM,
           0
         );
-        let timeToAlarm = alarm - now;
-        if (timeToAlarm < 0) timeToAlarm += 24 * 60 * 60 * 1000; // Next day
+
+        let timeToAlarm = alarmDate.getTime() - now.getTime();
+        if (timeToAlarm < 0) timeToAlarm += 24 * 60 * 60 * 1000; // next day
+
         alarmMsg.textContent = `Alarm set for ${alarmTime}`;
+
+        // ✅ Prime the audio ON USER CLICK (browser will allow this)
+        alarmSound
+          .play()
+          .then(() => {
+            alarmSound.pause();
+            alarmSound.currentTime = 0;
+            console.log("Audio unlocked successfully");
+          })
+          .catch((err) => {
+            console.log("Audio unlock failed:", err);
+          });
+
         alarmTimeout = setTimeout(() => {
+          alarmSound.loop = true;
+          alarmSound.play().catch((err) => {
+            console.log("Play failed when alarm triggered:", err);
+          });
+
           window.alert("⏰ Wake up! Time's up!");
+
+          alarmSound.pause();
+          alarmSound.currentTime = 0;
           alarmMsg.textContent = "";
         }, timeToAlarm);
       };
@@ -158,7 +191,12 @@
       function pomoTick() {
         if (pomoSec === 0 && pomoMin === 0) {
           clearInterval(pomoInterval);
+          var alarm = document.getElementById("alarmSound");
+          alarm.loop = true;
+          alarm.play();
           window.alert("Pomodoro done! Take a short break.");
+          alarm.pause();
+          alarm.currentTime = 0;
         } else if (pomoSec === 0) {
           pomoMin--;
           pomoSec = 59;
@@ -225,4 +263,3 @@
     </script>
   </body>
 </html>
-
