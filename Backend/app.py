@@ -1,27 +1,17 @@
 from flask import Flask,render_template,request,redirect,session,flash
-import psycopg2
-from urllib.parse import urlparse
+from pymongo import MongoClient
+from bson import ObjectId
 from dotenv import load_dotenv
 import os
 
-app= Flask(__name__)
+app= Flask(__name__, template_folder="../Frontend/templates",static_folder="../Frontend/static")
 
 load_dotenv()
 
-def get_db_connection():
-    
-    database_url = os.getenv("database_url")
-    
-    parsed_url = urlparse(database_url)
-    
-    conn = psycopg2.connect(
-        host=parsed_url.hostname,
-        database=parsed_url.path[1:],  # Remove the leading '/'
-        user=parsed_url.username,
-        password=parsed_url.password,
-        port=parsed_url.port
-    )
-    return conn
+client = MongoClient(os.getenv("database_url"))
+
+db = client["taskcraft"]
+
 app.secret_key= os.getenv("secret_key")
 
 @app.route("/")
@@ -36,35 +26,25 @@ def signup():
 def click1():
     print(request.form["id"])
     print(request.form["pass"])
-    mydb = get_db_connection()
-    cursor = mydb.cursor()
 
-    cursor.execute("SELECT userid FROM landing WHERE userid = %s", (request.form["id"],))
-    existing_user = cursor.fetchone()
+    users_collection = db["landing"]
+
+    existing_user = users_collection.find_one({
+        "userid": request.form["id"]
+    })
 
     if existing_user:
         flash("User ID already exists. Please choose another one.")
-        cursor.close()
-        mydb.close()
         return redirect("/signup")
     
-    sql="insert into landing (userid,password) values(%s,%s)"
-    values=(request.form["id"],request.form["pass"])
-    cursor.execute(sql,values)
-    mydb.commit()
+    user = users_collection.insert_one({
+        "userid": request.form["id"],
+        "password": request.form["pass"]
+    })
+
+    session['user_mid'] = str(user.inserted_id)
     
-
-    cursor.execute("SELECT num, userid FROM landing WHERE userid = %s AND password = %s", (request.form["id"], request.form["pass"]))
-    user = cursor.fetchone()
-
-    session['user_num'] = user[0]
-    cursor.close()
-    mydb.close()
-        
-    print(f"New user registered with num: {session['user_num']}")
-
-    cursor.close()
-    mydb.close()
+    print(f"New user registered with num: {session['user_mid']}")
 
     return redirect("/landing")
 
@@ -78,48 +58,46 @@ def ogclick():
         user_id = request.form['user_id'].strip()
         password = request.form['password'].strip()
         
-        conn = get_db_connection()
-        cur = conn.cursor()
+        users_collection = db["landing"]
             # Check if user exists
-        cur.execute('SELECT num,userid, password FROM landing WHERE userid = %s', (user_id,))
-        user = cur.fetchone()
+        user = users_collection.find_one({
+            "userid": user_id
+        })
 
         if user is None:
                 # Case 2: User doesn't exist at all
             flash('No user found with these credentials. Please sign up if you haven\'t already.')
             return render_template('login.html')
             
-        elif user[2] != password:
+        elif str(user["password"]) != password:
                 # Case 1: User exists but password is wrong
             flash('Wrong User ID or Password. Please try again.')
             return render_template('login.html')
             
         else:
                 # Case 3: Both match - successful login
-            session['user_num'] = user[0]
+            session['user_mid'] = str(user["_id"])
             return redirect("/landing")
 
 @app.route("/logout")
 def logout():
-    user_num = session['user_num']
-    mydb = get_db_connection()
-    cursor = mydb.cursor()
-    sql="delete from landing where num = %s"
+    user_mid = session['user_mid']
+    users_collection = db["landing"]
 
-    cursor.execute(sql,(user_num,))
-    mydb.commit()
-
-    cursor.close()
-    mydb.close()
+    users_collection.delete_one({
+        "_id" : ObjectId(user_mid)
+    })
 
     return redirect("/")
+
 @app.route("/logout2")
 def log():
     try:
-        session.pop("user_num")
+        session.pop("user_mid")
     except KeyError:
         pass
     return redirect("/")
+
 @app.route("/landing")
 def land():
     return render_template("landing.html")
@@ -127,99 +105,108 @@ def land():
 
 @app.route("/bill")
 def finance():
-    user_num = session['user_num']
+    user_mid = session['user_mid']
     
-    mydb = get_db_connection()
-    cursor = mydb.cursor()
+    users_collection = db["finance_tracker"]
 
-    cursor.execute("SELECT id, date, description, amount FROM finance_tracker WHERE user_num = %s ORDER BY date", (user_num,))
-    bills = cursor.fetchall()
+    bills = list(users_collection.find({"user_mid":ObjectId(user_mid)},{
+        "_id" : 1,
+        "date": 1,
+        "description" : 1, 
+        "amount":1
 
-    cursor.execute("SELECT SUM(amount) FROM finance_tracker where user_num = %s",(user_num,))
+    }).sort("date",1))
 
-    total = cursor.fetchone()
+    result = list(users_collection.aggregate([
+        {
+            "$match": {"user_mid": ObjectId(user_mid)}
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total": {"$sum": "$amount"}
+            }
+        }
+    ]))
+    total = result[0]["total"] if result else 0
     print(total)
-    cursor.close()
-    mydb.close()
 
     return render_template("finance.html",expenses=bills,total=total)
 
 @app.route("/addexpense",methods=["post"])
 def click2():
-    user_num = session['user_num']
+    user_mid = session['user_mid']
     
-    mydb = get_db_connection()
-    cursor = mydb.cursor()
-    sql="Insert into finance_tracker (user_num,date, description, amount) values(%s,%s,%s,%s)"
+    users_collection = db["finance_tracker"]
 
-    cursor.execute(sql,(user_num,request.form["trans-date"],request.form["trans-desc"],request.form["trans-amount"]))
-    mydb.commit()
-
-    cursor.close()
-    mydb.close()
+    users_collection.insert_one({
+        "user_mid" : ObjectId(user_mid),
+        "date" : request.form["trans-date"],
+        "description" : request.form["trans-desc"],
+        "amount" : float(request.form["trans-amount"])
+    })
 
     return redirect("/bill")
 
 @app.route("/delexrow",methods=["post"])
 def delex():
 
-    user_num = session['user_num']
+    user_mid = session['user_mid']
     id=request.form["row_id"]
-    mydb = get_db_connection()
-    cursor = mydb.cursor()
-    sql="delete from finance_tracker where user_num = %s AND id= %s"
 
-    cursor.execute(sql,(user_num,id))
-    mydb.commit()
+    users_collection = db["finance_tracker"]
 
-    cursor.close()
-    mydb.close()
+    users_collection.delete_one({
+        "user_mid" : ObjectId(user_mid),
+        "_id" : ObjectId(id)
+    })
+    
     return redirect("/bill")
 
 @app.route("/password")
 def password():
-    user_num = session['user_num']
+    user_mid = session['user_mid']
     
-    mydb = get_db_connection()
-    cursor = mydb.cursor()
+    users_collection = db["password_manager"]
 
-    cursor.execute("SELECT id, website_name,login_id,password FROM password_manager WHERE user_num = %s", (user_num,))
-    passwords = cursor.fetchall()
-
-    cursor.close()
-    mydb.close()
+    passwords = list(users_collection.find({
+        "user_mid":ObjectId(user_mid)
+    },{
+        "_id" : 1, 
+        "website_name" : 1,
+        "login_id" : 1,
+        "password" : 1
+    }))
 
     return render_template("password.html",passwords=passwords)
 
 @app.route("/addpassword",methods=["post"])
 def click3():
-    user_num = session['user_num']
+    user_mid = session['user_mid']
     
-    mydb = get_db_connection()
-    cursor = mydb.cursor()
-    sql="Insert into password_manager (user_num,website_name,login_id,password) values(%s,%s,%s,%s)"
+    users_collection = db["password_manager"]
 
-    cursor.execute(sql,(user_num,request.form["website"],request.form["loginid"],request.form["password"]))
-    mydb.commit()
-
-    cursor.close()
-    mydb.close()
+    users_collection.insert_one({
+        "user_mid" : ObjectId(user_mid),
+        "website_name" : request.form["website"],
+        "login_id" : request.form["loginid"],
+        "password" : request.form["password"]
+    })
 
     return redirect("/password")
 
 @app.route("/delpasrow",methods=["post"])
 def delpas():
-    user_num = session['user_num']
+    user_mid = session['user_mid']
     id=request.form["row_id"]
-    mydb = get_db_connection()
-    cursor = mydb.cursor()
-    sql="delete from password_manager where user_num = %s AND id= %s"
 
-    cursor.execute(sql,(user_num,id))
-    mydb.commit()
+    users_collection = db["password_manager"]
 
-    cursor.close()
-    mydb.close()
+    users_collection.delete_one({
+        "user_mid" : ObjectId(user_mid),
+        "_id" : ObjectId(id)
+    })
+
     return redirect("/password")
 
 @app.route("/time")
@@ -228,48 +215,51 @@ def time():
 
 @app.route("/deadline")
 def deadline():
-    user_num = session['user_num']
+    user_mid = session['user_mid']
     
-    mydb = get_db_connection()
-    cursor = mydb.cursor()
-
-    cursor.execute("SELECT id, name,status,date,time FROM deadline_tracker WHERE user_num = %s ORDER BY date", (user_num,))
-    deadlines = cursor.fetchall()
-
-    cursor.close()
-    mydb.close()
+    users_collection = db["deadline_tracker"]
+    
+    deadlines = list(users_collection.find({
+        "user_mid" : ObjectId(user_mid)
+    },
+    {
+        "_id" : 1,
+        "name" : 1,
+        "status" : 1,
+        "date" : 1,
+        "time" : 1
+    }).sort("date" , 1))
 
     return render_template("deadlines.html",deadlines=deadlines)
 
 @app.route("/adddeadline",methods=["post"])
 def click4():
-    user_num = session['user_num']
+    user_mid = session['user_mid']
     
-    mydb = get_db_connection()
-    cursor = mydb.cursor()
-    sql="Insert into deadline_tracker (user_num,name,status,date,time) values(%s,%s,%s,%s,%s)"
-
-    cursor.execute(sql,(user_num,request.form["name"],request.form["status"],request.form["date"],request.form["time"]))
-    mydb.commit()
+    users_collection = db["deadline_tracker"]
     
-    cursor.close()
-    mydb.close()
+    users_collection.insert_one({
+        "user_mid" : ObjectId(user_mid),
+        "name" : request.form["name"],
+        "status" : request.form["status"],
+        "date" : request.form["date"],
+        "time" : request.form["time"]
+    })
 
     return redirect("/deadline")
 
 @app.route("/deldlrow",methods=["post"])
 def deldl():
-    user_num = session['user_num']
+    user_mid = session['user_mid']
     id=request.form["row_id"]
-    mydb = get_db_connection()
-    cursor = mydb.cursor()
-    sql="delete from deadline_tracker where user_num = %s AND id= %s"
 
-    cursor.execute(sql,(user_num,id))
-    mydb.commit()
+    users_collection = db["deadline_tracker"]
 
-    cursor.close()
-    mydb.close()
+    users_collection.delete_one({
+        "user_mid":ObjectId(user_mid),
+        "_id" : ObjectId(id)
+    })
+
     return redirect("/deadline")
 
 if __name__=="__main__":

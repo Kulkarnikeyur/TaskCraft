@@ -72,9 +72,7 @@
         <div class="total-expenses" aria-live="polite">
           Total Expenses
 
-          {% for t in total %}
-            {{t}}
-          {% endfor %}
+          {{total}}
         </div>
 
         <table>
@@ -89,12 +87,12 @@
               <tbody id="bills-table-body">
                 {% for expense in expenses %}
                 <tr>
-                  <td>{{ expense[1] }}</td>
-                  <td>${{ expense[2] }}</td>
-                  <td>{{ expense[3] }}</td>
+                  <td>{{ expense.date }}</td>
+                  <td>{{ expense.description }}</td>
+                  <td>{{ expense.amount }}</td>
                   <td>
                   <form action="/delexrow" method="post" >
-                    <input type="hidden" name="row_id" value="{{ expense[0] }}" >
+                    <input type="hidden" name="row_id" value="{{ expense._id }}" >
                     <button type="submit" class="delete">delete</button>
                   </form>
                 </td>

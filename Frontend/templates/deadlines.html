@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -64,10 +64,10 @@
           </select>
 
           <label for="date">Date</label>
-          <input type="date" id="date" name="date" required autofocus/>
+          <input type="date" id="date" name="date" required autofocus />
 
           <label for="time">Time</label>
-          <input type="time" id="time" name="time" required autofocus/>
+          <input type="time" id="time" name="time" required autofocus />
 
           <button type="submit">Add Deadline</button>
         </form>
@@ -88,16 +88,16 @@
           <tbody id="deadline-table-body">
             {% for deadline in deadlines %}
             <tr>
-              <td>{{ deadline[1] }}</td>
-              <td>${{deadline[2] }}</td>
-              <td>{{ deadline[3] }}</td>
-              <td>{{deadline[4]}}</td>
+              <td>{{ deadline.name }}</td>
+              <td>{{deadline.status }}</td>
+              <td>{{ deadline.date }}</td>
+              <td>{{deadline.time }}</td>
               <td>
                 <form action="/deldlrow" method="post">
                   <input
                     type="hidden"
                     name="row_id"
-                    value="{{ deadline[0] }}"
+                    value="{{ deadline._id }}"
                   />
                   <button type="submit" class="delete">delete</button>
                 </form>
@@ -163,4 +163,3 @@
     </script>
   </body>
 </html>
-
