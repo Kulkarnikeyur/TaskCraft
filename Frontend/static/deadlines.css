@@ -93,10 +93,12 @@ body {
   font-family: "Bebas Neue", sans-serif;
   font-size: clamp(1.2rem, 4vw, 1.7rem);
   letter-spacing: 0.08em;
-  color: var(--webname);
+  color: var(--text);
   font-weight: 400;
 }
-
+.webname {
+  color: var(--webname);
+}
 .topbar-right {
   margin-left: auto;
 }
