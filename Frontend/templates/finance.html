@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -13,26 +13,24 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='finance.css') }}"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <!-- Top Right Bar with Theme Toggle (Account circle ignored for now) -->
     <header class="head">
-      <h4 class="heading">FINANCE TRACKER</h4>
+      <div class="namediv">
+        <h4 class="heading">FINANCE&nbsp;</h4>
+        <h4></h4>
+        <h4 class="heading webname">TRACKER</h4>
+      </div>
       <form action="/landing" method="get" class="nav-brand">
         <button class="home-btn">Home</button>
       </form>
-      <label class="toggle">
-        <span class="text">Light</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="theme-toggle-checkbox" />
-          <span class="slider"></span>
-        </label>
-        <span class="text">Dark</span>
-      </label>
     </header>
 
     <div class="container">
-      <!-- Left Panel -->
       <section class="side-panel" aria-label="Add New Transaction Panel">
         <h2>Add New Transaction</h2>
         <form id="transaction-form" action="/addexpense" method="post">
@@ -58,21 +56,18 @@
             step="0.01"
             placeholder="0.00"
             required
-            autofocus
           />
 
           <button type="submit">Add Transaction</button>
         </form>
       </section>
 
-      <!-- Main Content -->
       <main class="main-content" aria-label="Bills Section">
+        <button class="theme-btn" id="theme-toggle-btn">🌙</button>
         <h1>BILLS</h1>
 
         <div class="total-expenses" aria-live="polite">
-          Total Expenses
-
-          {{total}}
+          Total Expenses {{total}}
         </div>
 
         <table>
@@ -83,54 +78,48 @@
               <th>amount</th>
               <th></th>
             </tr>
-            </thead>
-              <tbody id="bills-table-body">
-                {% for expense in expenses %}
-                <tr>
-                  <td>{{ expense.date }}</td>
-                  <td>{{ expense.description }}</td>
-                  <td>{{ expense.amount }}</td>
-                  <td>
-                  <form action="/delexrow" method="post" >
-                    <input type="hidden" name="row_id" value="{{ expense._id }}" >
-                    <button type="submit" class="delete">delete</button>
-                  </form>
-                </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-        </div>
+          </thead>
+          <tbody id="bills-table-body">
+            {% for expense in expenses %}
+            <tr>
+              <td>{{ expense.date }}</td>
+              <td>{{ expense.description }}</td>
+              <td>{{ expense.amount }}</td>
+              <td>
+                <form action="/delexrow" method="post">
+                  <input
+                    type="hidden"
+                    name="row_id"
+                    value="{{ expense._id }}"
+                  />
+                  <button type="submit" class="delete">delete</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </main>
     </div>
 
     <script>
-      // Handle theme toggle
       const body = document.body;
-      const checkbox = document.getElementById("theme-toggle-checkbox");
-      const slider = document.getElementById("theme-slider");
+      const themeBtn = document.getElementById("theme-toggle-btn");
 
-      // Initialize theme from local storage or default to light
       function setTheme(dark) {
         if (dark) {
           body.classList.add("dark");
-          checkbox.checked = true;
-          slider.style.backgroundColor = getComputedStyle(body)
-            .getPropertyValue("--panel-bg")
-            .trim();
+          themeBtn.innerHTML = "☀️";
           localStorage.setItem("theme", "dark");
         } else {
           body.classList.remove("dark");
-          checkbox.checked = false;
-          slider.style.backgroundColor = getComputedStyle(body)
-            .getPropertyValue("--panel-bg")
-            .trim();
+          themeBtn.innerHTML = "🌙";
           localStorage.setItem("theme", "light");
         }
       }
 
-      checkbox.addEventListener("change", () => {
-        setTheme(checkbox.checked);
+      themeBtn.addEventListener("click", () => {
+        setTheme(!body.classList.contains("dark"));
       });
 
       window.addEventListener("load", () => {
@@ -140,4 +129,3 @@
     </script>
   </body>
 </html>
-

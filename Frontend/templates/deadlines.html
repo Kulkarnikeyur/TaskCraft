@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -9,7 +9,6 @@
       type="image/png"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Google Fonts -->
     <link
       href="https://fonts.googleapis.com/css?family=Montserrat:700&display=swap"
       rel="stylesheet"
@@ -24,7 +23,6 @@
     />
   </head>
   <body>
-    <!-- Top Header -->
     <header class="topbar">
       <h4 class="page-title">DEADLINE TRACKER</h4>
       <form action="/landing" method="get" class="nav-brand">
@@ -38,11 +36,9 @@
         </label>
         <span class="theme-label">dark</span>
       </div>
-      <!-- Account circle ignored for now -->
     </header>
 
     <main class="container">
-      <!-- LEFT: Static Form -->
       <section class="form-section" aria-label="Add Deadline Form">
         <h2>Add New Deadline</h2>
         <form action="/adddeadline" method="post">
@@ -73,7 +69,6 @@
         </form>
       </section>
 
-      <!-- RIGHT: Table with sample data -->
       <section class="table-section" aria-label="Deadline List">
         <h2>Upcoming Deadlines</h2>
         <table>
@@ -160,6 +155,162 @@
 
       // Run once on load
       updateStatusColors();
+    </script>
+  </body>
+</html> -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Deadline Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='logo.png') }}"
+      type="image/png"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Montserrat:700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='deadlines.css') }}"
+    />
+  </head>
+  <body class="dark">
+    <header class="topbar">
+      <h2 class="page-title">DEADLINE TRACKER</h2>
+      <nav class="topbar-right">
+        <a href="/landing" class="home-btn">Home</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <div class="main-theme-row">
+        <button id="theme-btn" class="theme-btn">☀️</button>
+      </div>
+      <div class="secs">
+        <!-- LEFT: Form -->
+        <section class="form-section" aria-label="Add Deadline Form">
+          <div class="section-header">
+            <h2>New Deadline</h2>
+          </div>
+
+          <form action="/adddeadline" method="post" class="deadline-form">
+            <div class="field-group">
+              <label for="name">Task Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="e.g. Submit assignment"
+                required
+              />
+            </div>
+
+            <div class="field-group">
+              <label for="status">Status</label>
+              <div class="select-wrapper">
+                <select id="status" name="status">
+                  <option value="not-started">Not yet started</option>
+                  <option value="on-my-way">On my way</option>
+                  <option value="completed">Completed</option>
+                </select>
+                <span class="select-arrow">▾</span>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date" required />
+              </div>
+              <div class="field-group">
+                <label for="time">Time</label>
+                <input type="time" id="time" name="time" required />
+              </div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+              <span>Add Deadline</span>
+            </button>
+          </form>
+        </section>
+
+        <!-- RIGHT: Table -->
+        <section class="table-section" aria-label="Deadline List">
+          <div class="section-header">
+            <h2>Upcoming</h2>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="deadline-table-body">
+                {% for deadline in deadlines %}
+                <tr>
+                  <td class="td-name">{{ deadline.name }}</td>
+                  <td class="td-status">
+                    <span class="status-badge status-{{ deadline.status }}"
+                      >{{ deadline.status }}</span
+                    >
+                  </td>
+                  <td>{{ deadline.date }}</td>
+                  <td>{{ deadline.time }}</td>
+                  <td>
+                    <form action="/deldlrow" method="post" style="margin: 0">
+                      <input
+                        type="hidden"
+                        name="row_id"
+                        value="{{ deadline._id }}"
+                      />
+                      <button type="submit" class="delete-btn" title="Remove">
+                        ✕
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const body = document.body;
+      const themeBtn = document.getElementById("theme-btn");
+
+      function applyTheme(isDark) {
+        body.classList.toggle("dark", isDark);
+        body.classList.toggle("light", !isDark);
+        themeBtn.textContent = isDark ? "☀️" : "🌙";
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+      }
+
+      themeBtn.addEventListener("click", () => {
+        applyTheme(!body.classList.contains("dark"));
+      });
+
+      window.addEventListener("load", () => {
+        const saved = localStorage.getItem("theme") || "dark";
+        applyTheme(saved === "dark");
+      });
     </script>
   </body>
 </html>
