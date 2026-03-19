@@ -3,15 +3,16 @@ from pymongo import MongoClient
 from bson import ObjectId
 from dotenv import load_dotenv
 import os
+import certifi
 
 app= Flask(__name__, template_folder="../Frontend/templates",static_folder="../Frontend/static")
 
 load_dotenv()
-
-client = MongoClient(os.getenv("database_url"))
-
+client = MongoClient(
+    os.getenv("database_url"),
+    tlsCAFile=certifi.where()
+)
 db = client["taskcraft"]
-
 app.secret_key= os.getenv("secret_key")
 
 @app.route("/")
@@ -100,7 +101,13 @@ def log():
 
 @app.route("/landing")
 def land():
-    return render_template("landing.html")
+    user_mid = session['user_mid']
+    
+    users_collection = db["landing"]
+
+    user = users_collection.find_one({"_id":ObjectId(user_mid)})
+    username = user["userid"]
+    return render_template("landing.html", username = username)
 
 
 @app.route("/bill")
